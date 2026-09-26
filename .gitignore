@@ -1,0 +1,23 @@
+# 模型与产物
+models/
+outputs/
+
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# 前端
+app/node_modules/
+app/out/
+app/dist/
+*.log
+
+# 系统文件
+.DS_Store
+
+# 打包时暂存的后端运行时
+backend/.venv-staged/
+
+# ZCode 会话数据
+.zcode/

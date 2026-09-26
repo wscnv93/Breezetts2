@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>BreezeVoice icon</title>
+    <style>
+      html, body { margin: 0; padding: 0; background: transparent; }
+    </style>
+  </head>
+  <body>
+    <script>
+      // ============================================================
+      //  微风之声 BreezeVoice — 应用图标
+      //
+      //  网格：macOS 图标规范 —— 1024 画布 / 824 内容 / 四周 100 透明边距
+      //        （824/1024 = 80.5%），圆角半径 185.4（Apple 模板值）
+      //  母题：一道由 翠鸟青 渐变为 琥珀 的声波 —— 冷色是风，暖色是声
+      //
+      //  两个变体：小尺寸（16/32/64）用更少的波峰、更粗的线、更高的对比度，
+      //  否则缩到 16px 会糊成一团；大尺寸保留完整细节与暖光。
+      // ============================================================
+
+      const SIZE = 1024
+      const BODY = 824
+      const RADIUS = 185.4
+      const MARGIN = (SIZE - BODY) / 2
+      const CX = SIZE / 2
+      const CY = SIZE / 2
+
+      const VARIANTS = {
+        large: {
+          cycles: 2.5,
+          ampBase: 16,
+          ampRange: 205,
+          stroke: 84,
+          bg: ['#20473D', '#183630', '#0E231D'],
+          highlight: 0.14,
+          wave: ['#1FA391', '#57BE97', '#C89B57', '#F0B25C'],
+          glow: { color: 'rgba(236,172,84,0.42)', blur: 48 },
+          innerEdge: 0.09
+        },
+        small: {
+          cycles: 1.6,
+          ampBase: 14,
+          ampRange: 214,
+          stroke: 116,
+          bg: ['#173A32', '#102A24', '#081512'],
+          highlight: 0.08,
+          wave: ['#2BC3A6', '#6FD6A8', '#E0A85E', '#FFC166'],
+          glow: null,
+          innerEdge: 0
+        }
+      }
+
+      function voiceWave(ctx, v) {
+        const x0 = MARGIN + 66
+        const x1 = SIZE - MARGIN - 66
+        const steps = 1200
+        ctx.beginPath()
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps
+          // 纺锤包络：两端收细，中段最饱满
+          const env = Math.sin(Math.PI * Math.pow(t, 0.92))
+          const amp = v.ampBase + v.ampRange * env
+          const x = x0 + (x1 - x0) * t
+          const y = CY - amp * Math.sin(v.cycles * Math.PI * 2 * t)
+          if (i === 0) ctx.moveTo(x, y)
+          else ctx.lineTo(x, y)
+        }
+      }
+
+      function render(variantName) {
+        const v = VARIANTS[variantName] || VARIANTS.large
+        const cv = document.createElement('canvas')
+        cv.width = SIZE
+        cv.height = SIZE
+        const ctx = cv.getContext('2d')
+
+        // ---- 底：墨松渐变 + 顶部柔光 ----
+        ctx.save()
+        ctx.beginPath()
+        ctx.roundRect(MARGIN, MARGIN, BODY, BODY, RADIUS)
+        const bg = ctx.createLinearGradient(0, MARGIN, 0, SIZE - MARGIN)
+        bg.addColorStop(0, v.bg[0])
+        bg.addColorStop(0.5, v.bg[1])
+        bg.addColorStop(1, v.bg[2])
+        ctx.fillStyle = bg
+        ctx.fill()
+
+        ctx.clip()
+        const glow = ctx.createRadialGradient(CX, MARGIN + 40, 20, CX, MARGIN + 40, 660)
+        glow.addColorStop(0, `rgba(255,255,255,${v.highlight})`)
+        glow.addColorStop(1, 'rgba(255,255,255,0)')
+        ctx.fillStyle = glow
+        ctx.fillRect(0, 0, SIZE, SIZE)
+        ctx.restore()
+
+        // ---- 声波 ----
+        const x0 = MARGIN + 66
+        const x1 = SIZE - MARGIN - 66
+        const line = ctx.createLinearGradient(x0, 0, x1, 0)
+        line.addColorStop(0, v.wave[0])
+        line.addColorStop(0.42, v.wave[1])
+        line.addColorStop(0.72, v.wave[2])
+        line.addColorStop(1, v.wave[3])
+
+        ctx.save()
+        ctx.beginPath()
+        ctx.roundRect(MARGIN, MARGIN, BODY, BODY, RADIUS)
+        ctx.clip()
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
+
+        if (v.glow) {
+          ctx.save()
+          ctx.shadowColor = v.glow.color
+          ctx.shadowBlur = v.glow.blur
+          ctx.strokeStyle = line
+          ctx.lineWidth = v.stroke
+          voiceWave(ctx, v)
+          ctx.stroke()
+          ctx.restore()
+        }
+
+        ctx.strokeStyle = line
+        ctx.lineWidth = v.stroke
+        voiceWave(ctx, v)
+        ctx.stroke()
+
+        if (v.innerEdge > 0) {
+          ctx.strokeStyle = `rgba(255,255,255,${v.innerEdge})`
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          ctx.roundRect(MARGIN + 1, MARGIN + 1, BODY - 2, BODY - 2, RADIUS - 1)
+          ctx.stroke()
+        }
+        ctx.restore()
+
+        return cv.toDataURL('image/png')
+      }
+
+      window.__renderIcon = render
+      window.__iconDataUrl = render('large')
+    </script>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+appId: com.breezevoice.app
+productName: 微风之声 BreezeVoice
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+# Python 后端与随包 venv 一起放进 Contents/Resources
+# 模型权重（约 7GB）不打包，运行时从应用支持目录或项目目录读取
+extraResources:
+  - from: ../backend
+    to: backend
+    filter:
+      - '**/*'
+      - '!.venv/**'
+      - '!.venv-staged/**'
+      - '!**/__pycache__/**'
+      - '!**/*.pyc'
+  - from: ../backend/.venv-staged
+    to: backend-venv
+    filter:
+      - '**/*'
+      - '!**/__pycache__/**'
+asarUnpack:
+  - resources/**
+win:
+  executableName: BreezeVoice
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+mac:
+  # 本地无 Developer ID 证书时用 ad-hoc 签名（'-'），
+  # 这样 entitlements（含麦克风权限）才会真正写入应用
+  identity: '-'
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  category: public.app-category.music
+  target:
+    - dir
+    - dmg
+  extendInfo:
+    - NSMicrophoneUsageDescription: 微风之声需要访问麦克风，用于录制声音克隆的参考音频。
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: false
+dmg:
+  artifactName: ${name}-${version}.${ext}
+linux:
+  target:
+    - AppImage
+    - deb
+  maintainer: breezevoice.local
+  category: Audio
+appImage:
+  artifactName: ${name}-${version}.${ext}
+npmRebuild: false
+publish:
+  provider: github
+  owner: wscnv93
+  repo: Breezetts2
+  releaseType: release
