@@ -721,6 +721,23 @@ input[type='range']:disabled {
   transition: all 0.15s;
 }
 
+/* 已选中音色时的"新增参考音频"紧凑形态 */
+.ref-zone.compact {
+  margin-top: 10px;
+  padding: 10px 12px;
+}
+
+.ref-zone .ref-zone-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.ref-zone.compact .ref-actions {
+  margin-top: 6px;
+}
+
 .ref-zone:hover,
 .ref-zone.dragover {
   border-color: var(--kingfisher);
@@ -785,7 +802,7 @@ input[type='range']:disabled {
 }
 
 .ref-preview {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .ref-preview canvas {

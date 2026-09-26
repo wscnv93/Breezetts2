@@ -208,76 +208,7 @@ export function RefAudioInput({ refAudio, onChange, disabled, onError }: Props):
 
   return (
     <div>
-      {!refAudio ? (
-        <div
-          className={`ref-zone${dragover ? ' dragover' : ''}`}
-          onDragOver={(e) => {
-            e.preventDefault()
-            setDragover(true)
-          }}
-          onDragLeave={() => setDragover(false)}
-          onDrop={(e) => {
-            e.preventDefault()
-            setDragover(false)
-            pickFile(e.dataTransfer.files[0])
-          }}
-          onClick={() => !disabled && fileRef.current?.click()}
-          role="button"
-          tabIndex={disabled ? -1 : 0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') fileRef.current?.click()
-          }}
-        >
-          {uploading
-            ? '正在处理音频…'
-            : recording
-              ? `正在录制 ${recSecs}s / ${MIN_REC_SECONDS}s 起可用（${MAX_REC_SECONDS}s 自动停止）`
-              : '拖入参考音频，或点击选择文件'}
-          {recording && deviceLabel && (
-            <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 4 }}>
-              输入设备：{deviceLabel}
-            </div>
-          )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="audio/*,video/webm"
-            onChange={(e) => {
-              pickFile(e.target.files?.[0])
-              e.target.value = ''
-            }}
-          />
-          <div className="ref-actions" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="btn-ghost"
-              disabled={disabled || uploading}
-              onClick={() => fileRef.current?.click()}
-            >
-              选择文件
-            </button>
-            <button
-              type="button"
-              className={`btn-record${recording ? ' recording' : ''}`}
-              disabled={disabled || uploading}
-              onClick={() => (recording ? recRef.current?.stop() : void startRecord())}
-            >
-              {recording ? (
-                <>
-                  <span className="rec-dot" /> 停止 · {recSecs}s
-                </>
-              ) : (
-                <>
-                  <span className="rec-dot" /> 麦克风录制
-                </>
-              )}
-            </button>
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 8 }}>
-            建议 3–15 秒干净人声，并填写与音频完全一致的文字
-          </div>
-        </div>
-      ) : (
+      {refAudio && (
         <div className="ref-preview">
           <StaticWave peaks={refAudio.peaks} height={34} />
           <div className="meta">
@@ -320,17 +251,84 @@ export function RefAudioInput({ refAudio, onChange, disabled, onError }: Props):
                   onChange(null)
                 }}
               >
-                移除
+                取消选择
               </button>
             </span>
           </div>
-          <audio
-            ref={previewRef}
-            onEnded={() => setPreviewing(false)}
-            style={{ display: 'none' }}
-          />
         </div>
       )}
+      <div
+        className={`ref-zone${dragover ? ' dragover' : ''}${refAudio ? ' compact' : ''}`}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDragover(true)
+        }}
+        onDragLeave={() => setDragover(false)}
+        onDrop={(e) => {
+          e.preventDefault()
+          setDragover(false)
+          pickFile(e.dataTransfer.files[0])
+        }}
+        onClick={() => !disabled && fileRef.current?.click()}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') fileRef.current?.click()
+        }}
+      >
+        {refAudio && <div className="ref-zone-title">新增参考音频</div>}
+        {uploading
+          ? '正在处理音频…'
+          : recording
+            ? `正在录制 ${recSecs}s / ${MIN_REC_SECONDS}s 起可用（${MAX_REC_SECONDS}s 自动停止）`
+            : '拖入音频到此处，或用下方按钮录制 / 选择文件'}
+        {recording && deviceLabel && (
+          <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 4 }}>
+            输入设备：{deviceLabel}
+          </div>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="audio/*,video/webm"
+          onChange={(e) => {
+            pickFile(e.target.files?.[0])
+            e.target.value = ''
+          }}
+        />
+        <div className="ref-actions" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className="btn-ghost"
+            disabled={disabled || uploading}
+            onClick={() => fileRef.current?.click()}
+          >
+            选择文件
+          </button>
+          <button
+            type="button"
+            className={`btn-record${recording ? ' recording' : ''}`}
+            disabled={disabled || uploading}
+            onClick={() => (recording ? recRef.current?.stop() : void startRecord())}
+          >
+            {recording ? (
+              <>
+                <span className="rec-dot" /> 停止 · {recSecs}s
+              </>
+            ) : (
+              <>
+                <span className="rec-dot" /> 麦克风录制
+              </>
+            )}
+          </button>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 8 }}>
+          {refAudio
+            ? '新录制 / 上传会作为新音色加入列表，不影响已选中的音色'
+            : '建议 3–15 秒干净人声，参考文字会自动保存'}
+        </div>
+      </div>
+      <audio ref={previewRef} onEnded={() => setPreviewing(false)} style={{ display: 'none' }} />
     </div>
   )
 }

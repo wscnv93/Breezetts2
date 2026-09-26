@@ -98,9 +98,11 @@ export default function App(): React.JSX.Element {
       .catch(() => undefined)
   }, [])
 
-  // 新上传/录制的参考音频自动入库
+  // 选中参考音频（新上传/录制入库并选中，或取消选择）。
+  // 文字跟着音频走：换音频时回填它已保存的参考文字，避免上一次的文字串到新音频上。
   const handleRefAudio = useCallback((r: RefAudio | null): void => {
     setRefAudio(r)
+    setRefText(r?.ref_text ?? '')
     if (r) setSavedRefs((list) => (list.some((x) => x.id === r.id) ? list : [r, ...list]))
   }, [])
 
@@ -113,6 +115,24 @@ export default function App(): React.JSX.Element {
     },
     [refAudio]
   )
+
+  // 参考文字防抖自动保存到当前选中的音色：输入即存，下次选用无需重输
+  const refTextEffectKey = `${refAudio?.id ?? ''}|${refText}`
+  useEffect(() => {
+    if (!refAudio) return
+    const transcript = refText.trim()
+    if ((refAudio.ref_text ?? '') === transcript) return
+    const t = window.setTimeout(() => {
+      void apiUpdateRef(refAudio.id, { refText: transcript })
+        .then((updated) => {
+          setSavedRefs((list) => list.map((x) => (x.id === refAudio.id ? updated : x)))
+          setRefAudio((cur) => (cur?.id === refAudio.id ? updated : cur))
+        })
+        .catch(() => undefined)
+    }, 800)
+    return () => window.clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refTextEffectKey])
 
   const handleRenameRef = useCallback((id: string, name: string): void => {
     apiUpdateRef(id, { name })
@@ -203,17 +223,7 @@ export default function App(): React.JSX.Element {
       seed: params.seed === '' ? null : Number(params.seed)
     }
 
-    // 参考文字随手存进音色库，下次选用该音色自动带上
-    if ((mode === 'clone' || mode === 'direction') && refAudio && refText.trim()) {
-      const refId = refAudio.id
-      const transcript = refText.trim()
-      void apiUpdateRef(refId, { refText: transcript })
-        .then((updated) => {
-          setSavedRefs((list) => list.map((x) => (x.id === refId ? updated : x)))
-          setRefAudio((cur) => (cur?.id === refId ? updated : cur))
-        })
-        .catch(() => undefined)
-    }
+    // 参考文字已由上面的防抖自动保存，无需在生成时再同步
 
     setPhase('connecting')
     sessionRef.current = new GenSession(request, {

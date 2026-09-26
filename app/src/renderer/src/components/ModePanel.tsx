@@ -167,7 +167,7 @@ export function ModePanel(props: Props): React.JSX.Element {
             </section>
           )}
           <section className="field">
-            <span className="label">{refAudio ? '当前参考音频' : '添加新的参考音频'}</span>
+            <span className="label">参考音频</span>
             <RefAudioInput
               refAudio={refAudio}
               onChange={onRefAudio}
