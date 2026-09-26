@@ -1,6 +1,6 @@
 {
   "name": "breezevoice",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Breeze TTS 2 本地语音生成客户端（MLX · Apple Silicon）",
   "main": "./out/main/index.js",
   "author": "BreezeVoice",
